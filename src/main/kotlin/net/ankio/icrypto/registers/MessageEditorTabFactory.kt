@@ -6,7 +6,7 @@ import burp.IMessageEditorTabFactory
 
 class MessageEditorTabFactory : IMessageEditorTabFactory {
     override fun createNewInstance(iMessageEditorController: IMessageEditorController, b: Boolean): IMessageEditorTab {
-        return MessageEditorTab(iMessageEditorController, b)
+        return MessageEditorTab(iMessageEditorController)
     }
 
 }

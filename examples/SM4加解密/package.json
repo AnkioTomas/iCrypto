@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "sm-crypto": "^0.3.12"
+    "yargs": "^17.0.1",
+    "sm-crypto": "^0.4.0"
   }
 }

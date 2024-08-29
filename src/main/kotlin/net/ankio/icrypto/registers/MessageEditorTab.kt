@@ -2,7 +2,6 @@ package net.ankio.icrypto.registers
 
 import burp.IMessageEditorController
 import burp.IMessageEditorTab
-import burp.ITextEditor
 import net.ankio.icrypto.BurpExtender
 import net.ankio.icrypto.http.Cache
 import net.ankio.icrypto.http.HttpAgreementRequest
@@ -11,144 +10,150 @@ import net.ankio.icrypto.rule.CommandType
 import net.ankio.icrypto.rule.Execution
 import net.ankio.icrypto.rule.Rule
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import javax.swing.*
 import javax.swing.event.ListDataListener
 
-class MessageEditorTab internal constructor(iMessageEditorController: IMessageEditorController?, b: Boolean) :
+class MessageEditorTab internal constructor(private val iMessageEditorController: IMessageEditorController?) :
     IMessageEditorTab {
-    private var messageEditor: ITextEditor
-    private var isRequest = false
-    private var iMessageEditorController: IMessageEditorController? = null
-    var httpAgreementRequest: HttpAgreementRequest? = null
-    var httpAgreementResponse: HttpAgreementResponse? = null
-    private fun selectItem(e: ActionEvent) {
-        val rule: Rule = (selectBox.selectedItem as Rule)
-        if (rule.command == "") {
-            return
-        }
-        val cache = Cache()
-        httpAgreementRequest = HttpAgreementRequest(iMessageEditorController?.request, cache)
-        httpAgreementResponse = HttpAgreementResponse(iMessageEditorController?.response, cache)
-
-        val commandType = when {
-            rule.name.contains("（收到请求/响应）") -> {
-                if (isRequest) CommandType.RequestFromClient else CommandType.ResponseFromServer
-            }
-            else -> {
-                if (isRequest) CommandType.RequestToServer else CommandType.ResponseToClient
-            }
-        }
-
-        if (Execution.run(rule.command, commandType, cache.temp)) {
-            val message = if (isRequest) {
-                httpAgreementRequest!!.toRequest(cache)
-            } else {
-                httpAgreementResponse!!.toResponse(cache)
-            }
-            setMessage(message, isRequest)
-        } else {
-            setMessage("加解密失败，详情请看日志".toByteArray(), isRequest)
-        }
+    private val messageArea: JTextArea = JTextArea().apply {
+        isEditable = true
+        lineWrap = true
+        wrapStyleWord = true
     }
-
-    private val rootPanel: JSplitPane
-    private val selectBox: JComboBox<Rule>
+    private var isRequest = false
+    private val cache = Cache()
+    private var originalContent: ByteArray? = null
+    private var showError: Boolean = false
+    private var httpAgreementRequest: HttpAgreementRequest? = null
+    private var httpAgreementResponse: HttpAgreementResponse? = null
+    private val selectBox: JComboBox<Rule> = JComboBox<Rule>().apply {
+        addActionListener { selectItem() }
+        preferredSize = Dimension(0, 30)
+    }
+    private val rootPanel: JSplitPane = JSplitPane()
 
     init {
-        this.iMessageEditorController = iMessageEditorController
-        messageEditor = BurpExtender.callbacks.createTextEditor()
-        messageEditor.setEditable(b)
-        val EditorComponent: Component = messageEditor.component
-        rootPanel = JSplitPane()
-        val panel1 = JPanel()
-        val label1 = JLabel()
-        selectBox = JComboBox<Rule>()
-
-        //======== splitPane1 ========
-        rootPanel.setOrientation(JSplitPane.VERTICAL_SPLIT)
-        //======== panel1 ========
-        panel1.preferredSize = Dimension(0, 30)
-        panel1.maximumSize = Dimension(2147483647, 30)
-        panel1.setLayout(BorderLayout())
-        //---- label1 ----
-        label1.setText("\u8bf7\u9009\u62e9\u811a\u672c  ")
-        panel1.add(label1, BorderLayout.WEST)
-
-        //---- comboBox1 ----
-        selectBox.addActionListener(ActionListener { e: ActionEvent -> selectItem(e) })
-        selectBox.preferredSize = Dimension(0, 30)
-        panel1.add(selectBox, BorderLayout.CENTER)
-        class Model : ComboBoxModel<Rule?> {
-            private var arrayList: ArrayList<Rule> = ArrayList()
-            private var rule: Rule? = null
-            init {
-                arrayList = ArrayList()
-                for (item in BurpExtender.config.list) {
-                    val newItem1 = item.copy() // 创建第一个副本
-                    newItem1.name += "（收到请求/响应）"
-                    arrayList.add(newItem1)
-
-                    val newItem2 = item.copy() // 创建第二个副本
-                    newItem2.name += "（发出请求/响应）"
-                    arrayList.add(newItem2)
-                }
-            }
-
-            override fun getSize(): Int {
-                return arrayList.size
-            }
-
-            override fun getElementAt(index: Int): Rule {
-                return arrayList[index]
-            }
-
-            override fun addListDataListener(l: ListDataListener) {}
-            override fun removeListDataListener(l: ListDataListener) {}
-            override fun setSelectedItem(anItem: Any?) {
-                rule = anItem as Rule
-            }
-
-            override fun getSelectedItem(): Rule? {
-               return rule
-            }
+        val label1 = JLabel("请选择脚本").apply {
+            text = "请选择脚本  "
         }
-        selectBox.setModel(Model())
-        rootPanel.topComponent = panel1
-        rootPanel.bottomComponent = EditorComponent
+
+        val infoPanel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.Y_AXIS)
+            add(JLabel("选择脚本执行后，请回到Raw或Pretty选项卡中修改内容.").apply {
+                foreground = Color.ORANGE
+            })
+        }
+
+        val panel1 = JPanel().apply {
+            preferredSize = Dimension(0, 30)
+            maximumSize = Dimension(Int.MAX_VALUE, 30)
+            layout = BorderLayout()
+            add(label1, BorderLayout.WEST)
+//            add(infoPanel, BorderLayout.SOUTH)
+            add(selectBox, BorderLayout.CENTER)
+        }
+
+        val editorScrollPane = JScrollPane(messageArea)
+
+        rootPanel.apply {
+            orientation = JSplitPane.VERTICAL_SPLIT
+            topComponent = panel1
+            bottomComponent = editorScrollPane
+        }
+
+        selectBox.model = RuleModel()
     }
 
+    private fun selectItem() {
+        val rule = selectBox.selectedItem as Rule
+        if (rule.command.isEmpty()) return
 
-    override fun getTabCaption(): String {
-        return BurpExtender.extensionName
+        // 从 originalContent 初始化请求和响应对象
+        httpAgreementRequest = originalContent?.let { HttpAgreementRequest(it, cache) }
+        httpAgreementResponse = originalContent?.let { HttpAgreementResponse(it, cache) }
+
+        processRule(rule)
     }
 
-    override fun getUiComponent(): Component {
-        return rootPanel
+    private fun processRule(rule: Rule) {
+        val commandType = getCommandType(rule)
+        if (Execution.run(rule.command, commandType, cache.temp, rule.args)) {
+            updateMessageArea()
+        } else {
+            showError("加解密失败，详情请看日志")
+        }
     }
 
-    override fun isEnabled(bytes: ByteArray, b: Boolean): Boolean {
-        return true
+    private fun updateMessageArea() {
+        val message = if (isRequest) httpAgreementRequest?.toRequest(cache) ?: ByteArray(0)
+        else httpAgreementResponse?.toResponse(cache) ?: ByteArray(0)
+        setMessage(message, isRequest)
     }
+
+    private fun showError(message: String) {
+        showError = true
+        setMessage(message.toByteArray(), isRequest)
+    }
+
+    private fun getCommandType(rule: Rule): CommandType {
+        return if (rule.name.contains("（收到请求/响应）")) {
+            if (isRequest) CommandType.RequestFromClient else CommandType.ResponseFromServer
+        } else {
+            if (isRequest) CommandType.RequestToServer else CommandType.ResponseToClient
+        }
+    }
+
+    override fun getTabCaption(): String = BurpExtender.extensionName
+
+    override fun getUiComponent(): Component = rootPanel
+
+    override fun isEnabled(content: ByteArray, isRequest: Boolean): Boolean = true
 
     override fun setMessage(content: ByteArray, isRequest: Boolean) {
         this.isRequest = isRequest
-        messageEditor.text = content
+
+        // 当没有错误时，保存原始内容
+        if (!showError) {
+            originalContent = content
+        }
+
+        // 根据是否显示错误更新 messageArea 的内容
+        messageArea.text = if (showError) {
+            String(content) // 如果有错误，使用当前传入的content显示错误信息
+        } else {
+            String(originalContent!!) // 否则显示原始内容
+        }
+
+        showError = false // 重置错误状态，准备下一次使用
     }
 
-    override fun getMessage(): ByteArray {
-       return messageEditor.text
-    }
+    override fun getMessage(): ByteArray = originalContent ?: ByteArray(0)
 
-    override fun isModified(): Boolean {
-        return messageEditor.isTextModified
-    }
+    override fun isModified(): Boolean = true
 
-    override fun getSelectedData(): ByteArray {
-        return messageEditor.selectedText
-    }
+    override fun getSelectedData(): ByteArray = messageArea.selectedText?.toByteArray() ?: ByteArray(0)
 
+    private class RuleModel : ComboBoxModel<Rule> {
+        private val rules: ArrayList<Rule> = ArrayList(BurpExtender.config.list.flatMap { rule ->
+            listOf(rule.copy().apply { name += "（收到请求/响应）" }, rule.copy().apply { name += "（发出请求/响应）" })
+        })
+        private var selectedRule: Rule? = null
+
+        override fun getSize(): Int = rules.size
+
+        override fun getElementAt(index: Int): Rule = rules[index]
+
+        override fun addListDataListener(l: ListDataListener) {}
+
+        override fun removeListDataListener(l: ListDataListener) {}
+
+        override fun setSelectedItem(item: Any?) {
+            selectedRule = item as? Rule
+        }
+
+        override fun getSelectedItem(): Rule? = selectedRule
+    }
 }

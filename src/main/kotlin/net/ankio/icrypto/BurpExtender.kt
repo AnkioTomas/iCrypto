@@ -4,6 +4,7 @@ import Config
 import burp.IBurpExtender
 import burp.IBurpExtenderCallbacks
 import burp.ITab
+import net.ankio.icrypto.registers.ContextMenuFactory
 import net.ankio.icrypto.registers.HttpListener
 import net.ankio.icrypto.registers.MessageEditorTabFactory
 import net.ankio.icrypto.ui.MainGUI
@@ -16,15 +17,16 @@ class BurpExtender : IBurpExtender,ITab {
         Companion.stdout = PrintWriter(callbacks.stdout, true)
         Companion.stderr = PrintWriter(callbacks.stderr, true)
         Companion.callbacks = callbacks
-        Companion.config  = Config.load()
+        Companion.config = Config.load()
 
         callbacks.setExtensionName("$extensionName $version")
-
 
         try {
             callbacks.registerHttpListener(HttpListener())
             callbacks.registerProxyListener(HttpListener())
             callbacks.registerMessageEditorTabFactory(MessageEditorTabFactory())
+            // 注册 ContextMenuFactory
+            callbacks.registerContextMenuFactory(ContextMenuFactory())
             callbacks.addSuiteTab(this@BurpExtender)
             stdout.println(
                 """[+] $extensionName is loaded
@@ -43,14 +45,13 @@ class BurpExtender : IBurpExtender,ITab {
         }
     }
 
-
     companion object {
 
         lateinit var callbacks: IBurpExtenderCallbacks
         lateinit var config: Config
         lateinit var stdout: PrintWriter
         lateinit var stderr: PrintWriter
-        const val version: String = "1.0.0"
+        const val version: String = "1.1.0"
         const val extensionName: String = "iCrypto"
 
     }
@@ -61,10 +62,10 @@ class BurpExtender : IBurpExtender,ITab {
 
     override fun getUiComponent(): Component {
         val gui = MainGUI()
-        return gui.root
+        return gui.root  // 使用 getRoot() 方法获取根组件
     }
 
-    fun finalize(){
+    fun finalize() {
         Config.save(config)
     }
 }

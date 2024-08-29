@@ -1,4 +1,4 @@
-JFDML JFormDesigner: "8.1.1.0.298" Java: "17.0.8" encoding: "UTF-8"
+JFDML JFormDesigner: "8.2.4.0.393" Java: "17.0.11" encoding: "UTF-8"
 
 new FormModel {
 	contentType: "form/swing"
@@ -6,15 +6,21 @@ new FormModel {
 		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
 			name: "panel1"
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class org.jdesktop.layout.GroupLayout ) {
-				"$horizontalGroup": "par l {seq l {space :::p, comp autoRun:::p:800:p, space :::x}}"
-				"$verticalGroup": "par l {seq l {comp autoRun:::p:36:p, space :0:0:x}}"
+				"$horizontalGroup": "par l {seq l {space :p:22:p, comp button2:::p::p, space :p:40:p, comp button3:::p::p, space ::778:x}}"
+				"$verticalGroup": "par l {seq l {space :::p, par b {comp button2::b:p::p, comp button3::b:p::p}, space ::18:x}}"
 			} ) {
 				name: "panel7"
 				"border": new javax.swing.border.TitledBorder( "插件配置" )
-				add( new FormComponent( "javax.swing.JCheckBox" ) {
-					name: "autoRun"
-					"text": "自动执行脚本"
-					addEvent( new FormEvent( "javax.swing.event.ChangeListener", "stateChanged", "autoRunStateChanged", true ) )
+				"preferredSize": new java.awt.Dimension( 1040, 70 )
+				add( new FormComponent( "javax.swing.JButton" ) {
+					name: "button2"
+					"text": "新增脚本"
+					addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "addNewScript", true ) )
+				} )
+				add( new FormComponent( "javax.swing.JButton" ) {
+					name: "button3"
+					"text": "刷新脚本"
+					addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "refreshScripInfo", true ) )
 				} )
 			}, new FormLayoutConstraints( class java.lang.String ) {
 				"value": "North"
@@ -36,14 +42,14 @@ new FormModel {
 					"value": "left"
 				} )
 				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class org.jdesktop.layout.GroupLayout ) {
-					"$horizontalGroup": "par l {seq l {space :::p, comp watchDel:::p::p, space s:::p, comp watchSave:::p::p, space ::627:x}, seq {par l {comp panel4:::::x, comp panel3::l:::x}, space :::p}}"
-					"$verticalGroup": "par l {seq {comp panel4:::p::p, space s:::p, comp panel3:::p:74:p, space s:::p, par b {comp watchDel::b:p::p, comp watchSave::b:::x}, space ::171:x}}"
+					"$horizontalGroup": "par l {seq {par l {comp panel4:::::x, seq {space :::p, comp watchDel:::p::p, space s:::p, comp watchSave:::p::p, space :0:615:x}, comp panel3::l:::x}, space :::p}}"
+					"$verticalGroup": "par l {seq {comp panel4:::p::p, space :::p, comp panel3:::p::p, space s:::p, par l:::p {comp watchDel:::::x, comp watchSave:::::x}, space :0:0:x}}"
 				} ) {
 					name: "panel2"
 					"border": new javax.swing.border.EmptyBorder( 20, 20, 20, 20 )
 					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class org.jdesktop.layout.GroupLayout ) {
-						"$horizontalGroup": "par l {seq {space :p:11:p, comp label2:::p::p, space u:::p, comp watchUrlInclude::::699:x, space :::p}}"
-						"$verticalGroup": "par l {seq t {space :::x, par b {comp label2::b:p::p, comp watchUrlInclude::b:p::p}, space :p:128:p}}"
+						"$horizontalGroup": "par l {seq l {space :p::p, par l {comp autoRun::l:p:136:p, seq l {comp label2:::p:70:p, space s:p::p, comp watchUrlInclude::::673:x}}, space :0:0:p}}"
+						"$verticalGroup": "par l {seq {space :::p, par l {comp label2:::::x, comp watchUrlInclude:::p::p}, space :::p, comp autoRun:::p::p, space :::x}}"
 					} ) {
 						name: "panel3"
 						"border": new javax.swing.border.TitledBorder( "监控参数（自动执行脚本需要配置）" )
@@ -52,12 +58,17 @@ new FormModel {
 						} )
 						add( new FormComponent( "javax.swing.JLabel" ) {
 							name: "label2"
-							"text": "URL包含"
+							"text": "URL包含:"
+						} )
+						add( new FormComponent( "javax.swing.JCheckBox" ) {
+							name: "autoRun"
+							"text": "自动执行脚本"
+							addEvent( new FormEvent( "javax.swing.event.ChangeListener", "stateChanged", "autoRunStateChanged", true ) )
 						} )
 					} )
 					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class org.jdesktop.layout.GroupLayout ) {
-						"$horizontalGroup": "par l {seq l {space :::p, par l {seq l {comp label8:::p::p, space :::p, comp watchCustom::::553:x}, seq l {comp label7:::p::p, space :::p, comp watchName:::::x}}, space :::p}}"
-						"$verticalGroup": "par l {seq {space :p:8:p, par b {comp label7::b:p::p, comp watchName::b:p::p}, space u:::p, par b {comp label8::b:p::p, comp watchCustom::b:p::p}, space :0:0:x}}"
+						"$horizontalGroup": "par l {seq {space :p::p, par l {seq l {comp label8:::p::p, space :::p, comp watchCustom::::541:x}, seq l {comp label7:::p::p, space :::p, comp watchName:::::x}, seq l {comp scrollPane1:::::x, space :::p, comp button1:::p:45:p}}, space :p::p}}"
+						"$verticalGroup": "par l {seq {space :p:8:p, par b {comp label7::b:p::p, comp watchName::b:p::p}, space u:::p, par b {comp label8::b:p::p, comp watchCustom::b:p::p}, par l {seq {space :::p, comp scrollPane1::::160:x}, seq l {space :p:53:p, comp button1:::p:45:p, space :0:68:x}}}}"
 					} ) {
 						name: "panel4"
 						"border": new javax.swing.border.TitledBorder( "脚本配置" )
@@ -74,6 +85,21 @@ new FormModel {
 						} )
 						add( new FormComponent( "javax.swing.JTextField" ) {
 							name: "watchName"
+						} )
+						add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
+							name: "scrollPane1"
+							add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class javax.swing.BoxLayout ) {
+								"axis": 1
+							} ) {
+								name: "panel5"
+								"border": new javax.swing.border.TitledBorder( "其他命令参数" )
+							} )
+						} )
+						add( new FormComponent( "javax.swing.JButton" ) {
+							name: "button1"
+							"font": new java.awt.Font( "Noto Sans", 1, 30 )
+							"text": "+"
+							addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "addCmdArgs", true ) )
 						} )
 					} )
 					add( new FormComponent( "javax.swing.JButton" ) {
@@ -92,15 +118,16 @@ new FormModel {
 			}, new FormLayoutConstraints( class java.lang.String ) {
 				"value": "Center"
 			} )
-			add( new FormComponent( "javax.swing.JLabel" ) {
-				name: "label1"
-				"text": "    神说：要解密，于是就有了iCrypto。Powered by Ankio"
-			}, new FormLayoutConstraints( class java.lang.String ) {
-				"value": "South"
-			} )
 		}, new FormLayoutConstraints( null ) {
-			"location": new java.awt.Point( 0, 0 )
-			"size": new java.awt.Dimension( 1040, 505 )
+			"location": new java.awt.Point( 5, 0 )
+			"size": new java.awt.Dimension( 1040, 555 )
+		} )
+		add( new FormComponent( "javax.swing.JLabel" ) {
+			name: "label1"
+			"text": "    神说：要解密，于是就有了iCrypto。Powered by Ankio"
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 5, 570 )
+			"size": new java.awt.Dimension( 1040, 21 )
 		} )
 	}
 }

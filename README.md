@@ -10,7 +10,7 @@
 
 | 解密前                                                       | 解密后                                                       |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![image-20231010131805227](.assets/image-20231010131805227.png) | ![image-20231010131850918](.assets/image-20231010131850918.png) |
+| ![image-20231010131805227](assets/image-20231010131805227.png) | ![image-20231010131850918](assets/image-20231010131850918.png) |
 
 
 
@@ -23,33 +23,38 @@
 
 ### 自动加解密
 
-只需勾上`自动执行脚本`，并在指定脚本添加监控URL即可（**只支持域名**)
+只需勾上`自动执行脚本`，并在指定脚本添加监控URL即可
 
-![image-20231010132015761](.assets/image-20231010132015761.png)
+![image-20231010132015761](assets/image-20231010132015761.png)
 
 自动加解密的结果可以在`History`、`Repeater`中查看
 
-![image-20231010132304258](.assets/image-20231010132304258.png)
+![image-20231010132304258](assets/image-20231010132304258.png)
 
-![image-20231010132429622](.assets/image-20231010132429622.png)
+![image-20231010132429622](assets/image-20231010132429622.png)
 
 
 ### 手动加解密
 自动加解密可能存在一些性能问题，有时候可以尝试手动加解密：
 
-![image-20231010132626519](.assets/image-20231010132626519.png)
+![image-20231010132626519](assets/image-20231010132626519.png)
 
 
 
 ## 脚本编写指南
 
-插件调用脚本为：
+* 插件调用脚本为：
 
 ```shell
-执行命令 请求类型 临时文件夹
+python c:/tools/Decryption.py --operationType 请求类型 --dataDir 临时文件夹
+```
+* 插件还支持其他自定义参数，可以直接在burp数据包中选中内容，给参数设置值。
+
+```shell
+node c:/tools/Decryption.cjs --operationType 请求类型 --dataDir 临时文件夹 --initToken 6c34da399cbcfbb71d86c72215942759
 ```
 
-其中，第一个参数为 `请求类型`，一共有四种类型：
+* 其中，`--operationType`参数为 `请求类型`，一共有四种类型：
 
 ```js
 const RequestFromClient = "0";// 日志/Interrupt收到请求（请求包解密）
@@ -58,11 +63,11 @@ const ResponseFromServer = "2";// 日志/Repeater/Interrupt收到响应（响应
 const ResponseToClient = "3";// Repeater/Interrupt发出响应（响应包加密
 ```
 
-可以根据burp的生命周期来理解这四种类型：
+> 可以根据burp的生命周期来理解这四种类型：
 
-![image-20231010132700553](.assets/image-20231010132700553.png)
+![image-20231010132700553](assets/image-20231010132700553.png)
 
-第二个参数为临时文件夹，数据如下：
+* `--dataDir`参数为临时文件夹，目录下有如下文件：
 
 | 名称                 | 解释                     | 举例                  | 在哪种请求下存在 |
 | :------------------- | ------------------------ | --------------------- | ---------------- |
@@ -77,7 +82,18 @@ const ResponseToClient = "3";// Repeater/Interrupt发出响应（响应包加密
 | state.txt         | 响应包的响应代码         | 404                   | Response         |
 | state_msg.txt    | 响应包的响应消息         | Not Found             |Response|
 
-脚本在收到请求后，去修改对应临时文件夹的数据，处理成功，必须输出`success`字样
+
+* 其他参数需要根据脚本需求，自定义编写，通过插件的设置界面，在设置中添加自定义参数，同时支持通过历史纪录去标记设置参数值。
+> `--operationType`和`--dataDir`不需要单独添加。
+
+![alt text](assets/iShot_2024-08-29_09.16.44.png)
+
+> 可以在任何页面中，右键选择内容，对参数值进行设置，也可以手动填写。
+
+![alt text](assets/iShot_2024-08-29_09.19.44.png)
+
+
+* 脚本在收到请求后，去修改对应临时文件夹的数据，处理成功，必须输出`success`字样
 
 ## 脚本调试指南
 
@@ -87,6 +103,7 @@ const ResponseToClient = "3";// Repeater/Interrupt发出响应（响应包加密
 ## 案例&模板
 
 - [Sm4](./examples/SM4加解密)
+- [AES多参数](./examples/AES加解密)
 
 ## 协议
 
