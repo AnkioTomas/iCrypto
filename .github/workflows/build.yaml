@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "发布辛巴本"
+        description: "新版本编号"
         required: true
 
 jobs:
