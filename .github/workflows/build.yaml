@@ -24,17 +24,6 @@ jobs:
       - name: 使用 Gradle 构建 JAR
         run: ./gradlew shadowJar
 
-      - name: 上传构建产物到工作流
-        uses: actions/upload-artifact@v2
-        with:
-          name: package
-          path: build/libs/iCrypto-*-SNAPSHOT-all.jar
-
-      - name: 下载构建产物
-        uses: actions/download-artifact@v2
-        with:
-          name: package
-          path: build/libs
 
       - name: 创建并发布 GitHub Release
         uses: softprops/action-gh-release@v1
